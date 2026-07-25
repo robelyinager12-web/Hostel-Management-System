@@ -1,0 +1,234 @@
+// Heroy Hostel Management System — Prisma schema
+// PostgreSQL
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMINISTRATOR
+  HOSTEL_MANAGER
+  RECEPTIONIST
+  WARDEN
+  STUDENT
+  SECURITY_GUARD
+  MAINTENANCE_STAFF
+  ACCOUNTANT
+  PARENT
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum RoomStatus {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+  RESERVED
+}
+
+enum FeeStatus {
+  PENDING
+  PAID
+  OVERDUE
+  PARTIAL
+}
+
+enum ComplaintStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  REJECTED
+}
+
+enum MaintenanceStatus {
+  REQUESTED
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id                String    @id @default(uuid())
+  fullName          String
+  username          String    @unique
+  email             String    @unique
+  passwordHash      String
+  phoneNumber       String?
+  gender            Gender?
+  role              Role      @default(STUDENT)
+  isEmailVerified   Boolean   @default(false)
+  otpCode           String?
+  otpExpiresAt      DateTime?
+  refreshToken      String?
+  twoFactorEnabled  Boolean   @default(false)
+  lastLoginAt       DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  student           Student?
+  loginActivities   LoginActivity[]
+  complaints        Complaint[]       @relation("ComplaintRaisedBy")
+  maintenanceReqs   MaintenanceRequest[] @relation("MaintenanceRaisedBy")
+  announcements     Announcement[]   @relation("AnnouncementAuthor")
+
+  @@map("users")
+}
+
+model LoginActivity {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  ipAddress String?
+  userAgent String?
+  success   Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@map("login_activities")
+}
+
+model Student {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id])
+  studentId      String   @unique
+  department     String
+  academicYear   String
+  roomId         String?
+  room           Room?    @relation(fields: [roomId], references: [id])
+  guardianName   String?
+  guardianPhone  String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  fees           Fee[]
+  attendance     Attendance[]
+  visitors       Visitor[]
+  leaveRequests  LeaveRequest[]
+
+  @@map("students")
+}
+
+model Room {
+  id           String     @id @default(uuid())
+  roomNumber   String     @unique
+  block        String
+  floor        Int
+  capacity     Int
+  status       RoomStatus @default(AVAILABLE)
+  amenities    String[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  students     Student[]
+  maintenance  MaintenanceRequest[]
+
+  @@map("rooms")
+}
+
+model Fee {
+  id          String    @id @default(uuid())
+  studentId   String
+  student     Student   @relation(fields: [studentId], references: [id])
+  amount      Decimal   @db.Decimal(10, 2)
+  dueDate     DateTime
+  paidDate    DateTime?
+  status      FeeStatus @default(PENDING)
+  semester    String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("fees")
+}
+
+model Complaint {
+  id          String          @id @default(uuid())
+  raisedById  String
+  raisedBy    User            @relation("ComplaintRaisedBy", fields: [raisedById], references: [id])
+  title       String
+  description String
+  category    String
+  status      ComplaintStatus @default(OPEN)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@map("complaints")
+}
+
+model Visitor {
+  id           String   @id @default(uuid())
+  studentId    String
+  student      Student  @relation(fields: [studentId], references: [id])
+  visitorName  String
+  visitorPhone String
+  purpose      String
+  checkInAt    DateTime @default(now())
+  checkOutAt   DateTime?
+
+  @@map("visitors")
+}
+
+model Attendance {
+  id        String   @id @default(uuid())
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id])
+  date      DateTime
+  present   Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@unique([studentId, date])
+  @@map("attendance")
+}
+
+model LeaveRequest {
+  id         String      @id @default(uuid())
+  studentId  String
+  student    Student     @relation(fields: [studentId], references: [id])
+  reason     String
+  fromDate   DateTime
+  toDate     DateTime
+  status     LeaveStatus @default(PENDING)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@map("leave_requests")
+}
+
+model MaintenanceRequest {
+  id          String            @id @default(uuid())
+  raisedById  String
+  raisedBy    User              @relation("MaintenanceRaisedBy", fields: [raisedById], references: [id])
+  roomId      String
+  room        Room              @relation(fields: [roomId], references: [id])
+  issue       String
+  status      MaintenanceStatus @default(REQUESTED)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@map("maintenance_requests")
+}
+
+model Announcement {
+  id        String   @id @default(uuid())
+  authorId  String
+  author    User     @relation("AnnouncementAuthor", fields: [authorId], references: [id])
+  title     String
+  message   String
+  createdAt DateTime @default(now())
+
+  @@map("announcements")
+}
