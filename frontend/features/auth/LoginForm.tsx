@@ -26,9 +26,10 @@ export default function LoginForm() {
   const onSubmit = async (data: LoginInput) => {
     try {
       const res = await authService.login(data);
-      setUser(res.data.user);
+      const { user, accessToken } = res.data.data;
+      setUser(user, accessToken);
       toast.success('Welcome back!');
-      router.push(`/${res.data.user.role.toLowerCase()}`);
+      router.push(`/${user.role.toLowerCase()}`);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Invalid username or password');
     }
