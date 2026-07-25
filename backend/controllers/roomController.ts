@@ -44,7 +44,7 @@ export const getRooms = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const getRoomById = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
 
   const room = await prisma.room.findUnique({
     where: { id },
@@ -62,7 +62,7 @@ export const getRoomById = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const updateRoom = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
   const { block, floor, capacity, amenities, status } = req.body;
 
   const room = await prisma.room.update({
@@ -74,7 +74,7 @@ export const updateRoom = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const deleteRoom = asyncHandler(async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const id = req.params.id as string;
 
   const room = await prisma.room.findUnique({
     where: { id },
