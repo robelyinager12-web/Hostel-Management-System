@@ -1,10 +1,9 @@
 import bcrypt from 'bcrypt';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../config/db';
 import * as tokenService from './tokenService';
 import * as otpService from './otpService';
 import * as emailService from './emailService';
 
-const prisma = new PrismaClient();
 const SALT_ROUNDS = 12;
 
 interface RegisterInput {
