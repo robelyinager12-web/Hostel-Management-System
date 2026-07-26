@@ -38,6 +38,12 @@ export const authService = {
   verifyOtp: (email: string, otp: string) =>
     apiClient.post<{ success: boolean; message: string }>('/auth/verify-otp', { email, otp }),
 
+  resendOtp: (email: string) =>
+    apiClient.post<{ success: boolean; message: string; data?: { otp?: string } }>(
+      '/auth/resend-otp',
+      { email },
+    ),
+
   login: (payload: LoginPayload) =>
     apiClient.post<{
       success: boolean;
