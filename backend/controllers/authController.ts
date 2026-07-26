@@ -17,6 +17,16 @@ export const verifyOtp = asyncHandler(async (req: Request, res: Response) => {
   return apiResponse(res, 200, 'Email verified successfully. You can now log in.');
 });
 
+export const resendOtp = asyncHandler(async (req: Request, res: Response) => {
+  const { email } = req.body;
+  const otp = await authService.resendOtp(email);
+
+  if (process.env.NODE_ENV !== 'production') {
+    return apiResponse(res, 200, 'A new OTP has been generated', { otp });
+  }
+  return apiResponse(res, 200, 'A new OTP has been sent to your email');
+});
+
 export const login = asyncHandler(async (req: Request, res: Response) => {
   const { username, password, rememberMe } = req.body;
   const { user, accessToken, refreshToken } = await authService.loginUser(
