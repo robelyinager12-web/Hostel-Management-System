@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 import { registerSchema, type RegisterInput } from './authSchema';
 import { authService } from '@/services/authService';
 
@@ -27,6 +28,7 @@ const strengthColor = [
 ];
 
 export default function RegisterForm() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -44,6 +46,7 @@ export default function RegisterForm() {
     try {
       await authService.register(data);
       toast.success('Account created — check your email for the OTP code');
+      router.push(`/verify-otp?email=${encodeURIComponent(data.email)}`);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Registration failed');
     }
