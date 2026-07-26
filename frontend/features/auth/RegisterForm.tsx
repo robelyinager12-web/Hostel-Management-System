@@ -74,11 +74,11 @@ export default function RegisterForm() {
       onSubmit={handleSubmit(onSubmit)}
       className="space-y-3 w-full"
     >
-      <h1 className="text-xl font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+      <h1 className="text-lg sm:text-xl font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
         Register
       </h1>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {fields.map(([label, name, type]) => (
           <div key={name}>
             <label className={labelClass}>{label}</label>
@@ -135,7 +135,7 @@ export default function RegisterForm() {
           )}
         </div>
 
-        <div className="col-span-2">
+        <div className="col-span-1 sm:col-span-2">
           <label className={labelClass}>Confirm Password</label>
           <div className="relative">
             <input
