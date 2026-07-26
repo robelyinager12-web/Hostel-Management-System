@@ -7,8 +7,8 @@ import LoginForm from '@/features/auth/LoginForm';
 
 export default function LoginPage() {
   return (
-    <div className="h-screen w-full grid grid-cols-1 lg:grid-cols-2 bg-[#F8FAFC] overflow-hidden">
-      {/* Left: Premium hostel image, no background wrapper */}
+    <div className="min-h-screen lg:h-screen w-full grid grid-cols-1 lg:grid-cols-2 bg-[#F8FAFC] lg:overflow-hidden">
+      {/* Left: Premium hostel image — hidden on phones, shown from tablet landscape (lg) up */}
       <div className="hidden lg:block relative h-full">
         <img
           src="/illustrations/hostel-login.jpg"
@@ -45,8 +45,8 @@ export default function LoginPage() {
       </div>
 
       {/* Right: Login Form */}
-      <div className="flex items-center justify-center p-4 sm:p-6 h-full overflow-y-auto">
-        <div className="w-full max-w-md bg-white/70 backdrop-blur-xl border border-slate-100 shadow-xl rounded-2xl p-6 my-auto">
+      <div className="flex items-center justify-center px-4 py-6 sm:p-6 lg:h-full lg:overflow-y-auto">
+        <div className="w-full max-w-md bg-white/70 backdrop-blur-xl border border-slate-100 shadow-xl rounded-2xl p-5 sm:p-6 my-auto">
           <div className="flex items-center gap-2 mb-4">
             <div className="p-1.5 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600">
               <GraduationCap className="text-white" size={16} />
