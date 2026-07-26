@@ -12,8 +12,11 @@ import {
   Bell,
   Settings,
   GraduationCap,
+  X,
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '@/store/authStore';
+import { useUIStore } from '@/store/uiStore';
 
 const NAV_ITEMS: Record<string, Array<{ label: string; href: string; icon: any }>> = {
   ADMINISTRATOR: [
@@ -34,13 +37,13 @@ const NAV_ITEMS: Record<string, Array<{ label: string; href: string; icon: any }
   ],
 };
 
-export default function Sidebar() {
+function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const role = useAuthStore((s) => s.user?.role) || 'ADMINISTRATOR';
   const items = NAV_ITEMS[role] || NAV_ITEMS.ADMINISTRATOR;
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 fixed inset-y-0 left-0 bg-white/70 backdrop-blur-xl border-r border-slate-100 p-5">
+    <>
       <div className="flex items-center gap-2 mb-8">
         <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600">
           <GraduationCap className="text-white" size={20} />
@@ -55,6 +58,7 @@ export default function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onNavigate}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${
                 isActive
                   ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white'
@@ -67,6 +71,50 @@ export default function Sidebar() {
           );
         })}
       </nav>
-    </aside>
+    </>
+  );
+}
+
+export default function Sidebar() {
+  const isMobileSidebarOpen = useUIStore((s) => s.isMobileSidebarOpen);
+  const closeMobileSidebar = useUIStore((s) => s.closeMobileSidebar);
+
+  return (
+    <>
+      {/* Desktop sidebar — always visible from lg up */}
+      <aside className="hidden lg:flex flex-col w-64 fixed inset-y-0 left-0 bg-white/70 backdrop-blur-xl border-r border-slate-100 p-5">
+        <SidebarContent />
+      </aside>
+
+      {/* Mobile drawer — slides in below lg */}
+      <AnimatePresence>
+        {isMobileSidebarOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closeMobileSidebar}
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 lg:hidden"
+            />
+            <motion.aside
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'tween', duration: 0.25 }}
+              className="fixed inset-y-0 left-0 w-72 bg-white flex flex-col p-5 z-50 lg:hidden"
+            >
+              <button
+                onClick={closeMobileSidebar}
+                className="absolute top-5 right-5 p-1.5 rounded-lg hover:bg-slate-100 text-slate-500"
+              >
+                <X size={18} />
+              </button>
+              <SidebarContent onNavigate={closeMobileSidebar} />
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
