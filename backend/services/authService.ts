@@ -29,6 +29,13 @@ export async function registerUser(input: RegisterInput) {
     throw { status: 409, message: 'Username is already taken' };
   }
 
+  const existingStudentId = await prisma.student.findUnique({
+    where: { studentId: input.studentId },
+  });
+  if (existingStudentId) {
+    throw { status: 409, message: 'This Student ID is already registered' };
+  }
+
   const passwordHash = await bcrypt.hash(input.password, SALT_ROUNDS);
   const otp = otpService.generateOtp();
 
@@ -55,7 +62,13 @@ export async function registerUser(input: RegisterInput) {
     },
   });
 
-  await emailService.sendOtpEmail(user.email, otp);
+  try {
+    await emailService.sendOtpEmail(user.email, otp);
+  } catch (err) {
+    console.error('Failed to send OTP email:', err);
+    // Registration still succeeds — the OTP exists in the database and can be
+    // verified once email delivery is fixed, or retrieved manually in dev.
+  }
 
   return user;
 }
@@ -76,6 +89,31 @@ export async function verifyOtp(email: string, otp: string) {
     where: { id: user.id },
     data: { isEmailVerified: true, otpCode: null, otpExpiresAt: null },
   });
+}
+
+export async function resendOtp(email: string) {
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) {
+    throw { status: 404, message: 'No account found with this email' };
+  }
+  if (user.isEmailVerified) {
+    throw { status: 400, message: 'This email is already verified' };
+  }
+
+  const otp = otpService.generateOtp();
+
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { otpCode: otp, otpExpiresAt: new Date(Date.now() + 10 * 60 * 1000) },
+  });
+
+  try {
+    await emailService.sendOtpEmail(user.email, otp);
+  } catch (err) {
+    console.error('Failed to send OTP email:', err);
+  }
+
+  return otp; // returned so it can be logged/checked in dev when SMTP isn't configured
 }
 
 export async function loginUser(
