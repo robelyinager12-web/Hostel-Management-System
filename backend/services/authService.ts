@@ -66,8 +66,6 @@ export async function registerUser(input: RegisterInput) {
     await emailService.sendOtpEmail(user.email, otp);
   } catch (err) {
     console.error('Failed to send OTP email:', err);
-    // Registration still succeeds — the OTP exists in the database and can be
-    // verified once email delivery is fixed, or retrieved manually in dev.
   }
 
   return user;
@@ -113,7 +111,7 @@ export async function resendOtp(email: string) {
     console.error('Failed to send OTP email:', err);
   }
 
-  return otp; // returned so it can be logged/checked in dev when SMTP isn't configured
+  return otp;
 }
 
 export async function loginUser(
@@ -152,6 +150,21 @@ export async function loginUser(
   const { passwordHash, otpCode, refreshToken: _rt, ...safeUser } = user;
 
   return { user: safeUser, accessToken, refreshToken };
+}
+
+export async function changePassword(userId: string, currentPassword: string, newPassword: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    throw { status: 404, message: 'User not found' };
+  }
+
+  const isValid = await bcrypt.compare(currentPassword, user.passwordHash);
+  if (!isValid) {
+    throw { status: 401, message: 'Current password is incorrect' };
+  }
+
+  const newPasswordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+  await prisma.user.update({ where: { id: userId }, data: { passwordHash: newPasswordHash } });
 }
 
 export async function refreshAccessToken(token?: string) {
