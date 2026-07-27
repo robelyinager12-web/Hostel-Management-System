@@ -10,6 +10,7 @@ router.post('/resend-otp', authController.resendOtp);
 router.post('/login', authController.login);
 router.post('/refresh-token', authController.refreshToken);
 router.post('/logout', authController.logout);
+router.patch('/change-password', authMiddleware, authController.changePassword);
 router.get('/me', authMiddleware, authController.me);
 
 export default router;
