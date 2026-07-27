@@ -12,6 +12,7 @@ import {
   Bell,
   Settings,
   GraduationCap,
+  Wrench,
   X,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -28,12 +29,43 @@ const NAV_ITEMS: Record<string, Array<{ label: string; href: string; icon: any }
     { label: 'Visitors', href: '/admin/visitors', icon: UserPlus },
     { label: 'Settings', href: '/admin/settings', icon: Settings },
   ],
+  HOSTEL_MANAGER: [
+    { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+    { label: 'Rooms', href: '/admin/rooms', icon: DoorOpen },
+    { label: 'Students', href: '/admin/students', icon: Users },
+    { label: 'Fees', href: '/admin/fees', icon: Wallet },
+    { label: 'Complaints', href: '/admin/complaints', icon: MessageSquareWarning },
+    { label: 'Visitors', href: '/admin/visitors', icon: UserPlus },
+  ],
   STUDENT: [
     { label: 'Dashboard', href: '/student', icon: LayoutDashboard },
     { label: 'My Room', href: '/student/room', icon: DoorOpen },
     { label: 'Fees', href: '/student/fees', icon: Wallet },
     { label: 'Complaints', href: '/student/complaints', icon: MessageSquareWarning },
     { label: 'Announcements', href: '/student/announcements', icon: Bell },
+  ],
+  WARDEN: [
+    { label: 'Dashboard', href: '/warden', icon: LayoutDashboard },
+    { label: 'Complaints', href: '/admin/complaints', icon: MessageSquareWarning },
+    { label: 'Maintenance', href: '/maintenance', icon: Wrench },
+    { label: 'Rooms', href: '/admin/rooms', icon: DoorOpen },
+  ],
+  RECEPTIONIST: [
+    { label: 'Dashboard', href: '/receptionist', icon: LayoutDashboard },
+    { label: 'Visitors', href: '/admin/visitors', icon: UserPlus },
+    { label: 'Rooms', href: '/admin/rooms', icon: DoorOpen },
+  ],
+  SECURITY_GUARD: [
+    { label: 'Dashboard', href: '/security', icon: LayoutDashboard },
+    { label: 'Visitors', href: '/admin/visitors', icon: UserPlus },
+  ],
+  MAINTENANCE_STAFF: [
+    { label: 'Dashboard', href: '/maintenance', icon: LayoutDashboard },
+    { label: 'Requests', href: '/maintenance', icon: Wrench },
+  ],
+  ACCOUNTANT: [
+    { label: 'Dashboard', href: '/accountant', icon: LayoutDashboard },
+    { label: 'Fees', href: '/admin/fees', icon: Wallet },
   ],
 };
 
@@ -81,12 +113,10 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Desktop sidebar — always visible from lg up */}
       <aside className="hidden lg:flex flex-col w-64 fixed inset-y-0 left-0 bg-white/70 backdrop-blur-xl border-r border-slate-100 p-5">
         <SidebarContent />
       </aside>
 
-      {/* Mobile drawer — slides in below lg */}
       <AnimatePresence>
         {isMobileSidebarOpen && (
           <>
