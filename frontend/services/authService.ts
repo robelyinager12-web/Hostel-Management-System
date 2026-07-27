@@ -53,6 +53,12 @@ export const authService = {
 
   logout: () => apiClient.post('/auth/logout'),
 
+  changePassword: (currentPassword: string, newPassword: string) =>
+    apiClient.patch<{ success: boolean; message: string }>('/auth/change-password', {
+      currentPassword,
+      newPassword,
+    }),
+
   getCurrentUser: () =>
     apiClient.get<{ success: boolean; data: { user: AuthUser } }>('/auth/me'),
 };
