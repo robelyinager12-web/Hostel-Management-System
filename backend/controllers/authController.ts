@@ -46,6 +46,21 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   return apiResponse(res, 200, 'Login successful', { user, accessToken });
 });
 
+export const changePassword = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user!.userId;
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    throw { status: 400, message: 'Current and new password are required' };
+  }
+  if (newPassword.length < 8) {
+    throw { status: 400, message: 'New password must be at least 8 characters' };
+  }
+
+  await authService.changePassword(userId, currentPassword, newPassword);
+  return apiResponse(res, 200, 'Password changed successfully');
+});
+
 export const refreshToken = asyncHandler(async (req: Request, res: Response) => {
   const token = req.cookies?.refreshToken;
   const { accessToken } = await authService.refreshAccessToken(token);
