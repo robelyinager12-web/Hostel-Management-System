@@ -65,7 +65,7 @@ export default function AdminFeesPage() {
         <p className="text-slate-500 text-sm mt-1">Track and manage student fee payments.</p>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         {['ALL', 'PENDING', 'PAID', 'OVERDUE', 'PARTIAL'].map((s) => (
           <button
             key={s}
