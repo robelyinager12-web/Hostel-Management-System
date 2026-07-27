@@ -110,7 +110,11 @@ export async function chatWithAssistant(userId: string, message: string, history
     throw { status: 502, message: 'The AI assistant is temporarily unavailable' };
   }
 
-  const data = await response.json();
+  interface GroqResponse {
+    choices?: Array<{ message?: { content?: string } }>;
+  }
+
+  const data = (await response.json()) as GroqResponse;
   const reply = data.choices?.[0]?.message?.content?.trim();
 
   if (!reply) {
