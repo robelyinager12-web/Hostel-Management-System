@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { DoorOpen, Users, Clock, UserCheck } from 'lucide-react';
+import { DoorOpen, Users, Clock, UserCheck, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import RoomList from '@/features/rooms/RoomList';
+import RoomFormModal from '@/features/rooms/RoomFormModal';
 import { roomService } from '@/services/roomService';
 import OccupancyChart from '@/components/charts/OccupancyChart';
 import type { Room } from '@/types/room';
@@ -19,13 +20,23 @@ interface RoomStats {
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState<RoomStats | null>(null);
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+  const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  useEffect(() => {
+  const fetchStats = () => {
     roomService
       .getStats()
       .then((res) => setStats(res.data.data))
       .catch((err) => toast.error(err?.response?.data?.message || 'Failed to load room stats'));
-  }, []);
+  };
+
+  useEffect(() => {
+    fetchStats();
+  }, [refreshKey]);
+
+  const handleRoomCreated = () => {
+    setRefreshKey((k) => k + 1);
+  };
 
   const statCards = [
     {
@@ -56,11 +67,20 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="p-6 space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold text-slate-800">Hostel Overview</h1>
-        <p className="text-slate-500 text-sm mt-1">
-          Live room occupancy and status across the hostel.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-slate-800">Hostel Overview</h1>
+          <p className="text-slate-500 text-sm mt-1">
+            Live room occupancy and status across the hostel.
+          </p>
+        </div>
+        <button
+          onClick={() => setIsAddRoomOpen(true)}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-medium bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90"
+        >
+          <Plus size={16} />
+          Add Room
+        </button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -91,7 +111,7 @@ export default function AdminDashboardPage() {
 
       <div>
         <h2 className="text-lg font-semibold text-slate-800 mb-4">Rooms</h2>
-        <RoomList onSelectRoom={setSelectedRoom} />
+        <RoomList key={refreshKey} onSelectRoom={setSelectedRoom} />
       </div>
 
       {selectedRoom && (
@@ -123,6 +143,12 @@ export default function AdminDashboardPage() {
           </div>
         </motion.div>
       )}
+
+      <RoomFormModal
+        isOpen={isAddRoomOpen}
+        onClose={() => setIsAddRoomOpen(false)}
+        onCreated={handleRoomCreated}
+      />
     </div>
   );
 }
