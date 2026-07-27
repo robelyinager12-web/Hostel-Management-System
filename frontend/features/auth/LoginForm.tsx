@@ -12,6 +12,18 @@ import { loginSchema, type LoginInput } from './authSchema';
 import { authService } from '@/services/authService';
 import { useAuthStore } from '@/store/authStore';
 
+const ROLE_ROUTES: Record<string, string> = {
+  ADMINISTRATOR: '/admin',
+  HOSTEL_MANAGER: '/admin',
+  RECEPTIONIST: '/receptionist',
+  WARDEN: '/warden',
+  STUDENT: '/student',
+  SECURITY_GUARD: '/security',
+  MAINTENANCE_STAFF: '/maintenance',
+  ACCOUNTANT: '/accountant',
+  PARENT: '/student',
+};
+
 export default function LoginForm() {
   const router = useRouter();
   const setUser = useAuthStore((s) => s.setUser);
@@ -29,7 +41,7 @@ export default function LoginForm() {
       const { user, accessToken } = res.data.data;
       setUser(user, accessToken);
       toast.success('Welcome back!');
-      router.push(`/${user.role.toLowerCase()}`);
+      router.push(ROLE_ROUTES[user.role] || '/login');
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Invalid username or password');
     }
