@@ -6,6 +6,7 @@ import feeRoutes from './feeRoutes';
 import complaintRoutes from './complaintRoutes';
 import announcementRoutes from './announcementRoutes';
 import visitorRoutes from './visitorRoutes';
+import aiRoutes from './aiRoutes';
 
 const router = Router();
 
@@ -16,5 +17,6 @@ router.use('/fees', feeRoutes);
 router.use('/complaints', complaintRoutes);
 router.use('/announcements', announcementRoutes);
 router.use('/visitors', visitorRoutes);
+router.use('/ai', aiRoutes);
 
 export default router;
