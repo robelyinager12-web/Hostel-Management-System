@@ -46,17 +46,17 @@ const SAMPLE_ROOMS = [
 ];
 
 async function seedRooms() {
-  const existingCount = await prisma.room.count();
-  if (existingCount > 0) {
-    console.log(`Rooms already exist (${existingCount} found) — skipping room creation.`);
-    return;
-  }
+  let createdCount = 0;
 
   for (const room of SAMPLE_ROOMS) {
+    const existing = await prisma.room.findUnique({ where: { roomNumber: room.roomNumber } });
+    if (existing) continue;
+
     await prisma.room.create({ data: room });
+    createdCount++;
   }
 
-  console.log(`Created ${SAMPLE_ROOMS.length} sample rooms.`);
+  console.log(`Created ${createdCount} new room(s) (skipped any that already existed).`);
 }
 
 async function assignStudentsToRooms() {
