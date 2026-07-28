@@ -2,11 +2,26 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { DoorOpen, Users, Clock, UserCheck, Plus } from 'lucide-react';
+import {
+  DoorOpen,
+  Users,
+  Clock,
+  UserCheck,
+  Plus,
+  GraduationCap,
+  Wallet,
+  TrendingUp,
+  CheckCircle2,
+  XCircle,
+  Home,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import RoomList from '@/features/rooms/RoomList';
 import RoomFormModal from '@/features/rooms/RoomFormModal';
 import { roomService } from '@/services/roomService';
+import { studentService } from '@/services/studentService';
+import { feeService, type Fee } from '@/services/feeService';
+import { attendanceService } from '@/services/attendanceService';
 import OccupancyChart from '@/components/charts/OccupancyChart';
 import type { Room } from '@/types/room';
 
@@ -23,6 +38,13 @@ export default function AdminDashboardPage() {
   const [isAddRoomOpen, setIsAddRoomOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
+  const [totalStudents, setTotalStudents] = useState<number | null>(null);
+  const [totalRevenue, setTotalRevenue] = useState<number | null>(null);
+  const [monthRevenue, setMonthRevenue] = useState<number | null>(null);
+  const [presentToday, setPresentToday] = useState<number | null>(null);
+  const [absentToday, setAbsentToday] = useState<number | null>(null);
+  const [fullRooms, setFullRooms] = useState<number | null>(null);
+
   const fetchStats = () => {
     roomService
       .getStats()
@@ -32,13 +54,64 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     fetchStats();
+
+    studentService
+      .getAll()
+      .then((res) => setTotalStudents(res.data.data.length))
+      .catch(() => {});
+
+    roomService
+      .getAll()
+      .then((res) => {
+        const full = res.data.data.filter(
+          (r) => (r.occupancy ?? r.students.length) >= r.capacity,
+        ).length;
+        setFullRooms(full);
+      })
+      .catch(() => {});
+
+    feeService
+      .getAll()
+      .then((res) => {
+        const fees = res.data.data as Fee[];
+        const now = new Date();
+        let total = 0;
+        let month = 0;
+
+        fees.forEach((fee) => {
+          if (fee.status === 'PAID') {
+            const amount = Number(fee.amount);
+            total += amount;
+            if (fee.paidDate) {
+              const paid = new Date(fee.paidDate);
+              if (paid.getFullYear() === now.getFullYear() && paid.getMonth() === now.getMonth()) {
+                month += amount;
+              }
+            }
+          }
+        });
+
+        setTotalRevenue(total);
+        setMonthRevenue(month);
+      })
+      .catch(() => {});
+
+    const today = new Date().toISOString().split('T')[0];
+    attendanceService
+      .getByDate(today)
+      .then((res) => {
+        const rows = res.data.data;
+        setPresentToday(rows.filter((r) => r.present === true).length);
+        setAbsentToday(rows.filter((r) => r.present === false).length);
+      })
+      .catch(() => {});
   }, [refreshKey]);
 
   const handleRoomCreated = () => {
     setRefreshKey((k) => k + 1);
   };
 
-  const statCards = [
+  const roomCards = [
     {
       label: 'Total Rooms',
       value: stats?.total ?? '—',
@@ -65,6 +138,45 @@ export default function AdminDashboardPage() {
     },
   ];
 
+  const summaryCards = [
+    {
+      label: 'Total Students',
+      value: totalStudents ?? '—',
+      icon: GraduationCap,
+      color: 'from-indigo-500 to-indigo-600',
+    },
+    {
+      label: 'Total Revenue',
+      value: totalRevenue !== null ? `${totalRevenue.toLocaleString()} ETB` : '—',
+      icon: Wallet,
+      color: 'from-emerald-500 to-emerald-600',
+    },
+    {
+      label: 'This Month Revenue',
+      value: monthRevenue !== null ? `${monthRevenue.toLocaleString()} ETB` : '—',
+      icon: TrendingUp,
+      color: 'from-purple-500 to-purple-600',
+    },
+    {
+      label: 'Present Today',
+      value: presentToday ?? '—',
+      icon: CheckCircle2,
+      color: 'from-emerald-500 to-emerald-600',
+    },
+    {
+      label: 'Absent Today',
+      value: absentToday ?? '—',
+      icon: XCircle,
+      color: 'from-red-500 to-red-600',
+    },
+    {
+      label: 'Full Rooms',
+      value: fullRooms ?? '—',
+      icon: Home,
+      color: 'from-orange-500 to-orange-600',
+    },
+  ];
+
   return (
     <div className="p-6 space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -83,8 +195,8 @@ export default function AdminDashboardPage() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {statCards.map((card) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {summaryCards.map((card) => (
           <motion.div
             key={card.label}
             initial={{ opacity: 0, y: 10 }}
@@ -102,6 +214,30 @@ export default function AdminDashboardPage() {
             </div>
           </motion.div>
         ))}
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold text-slate-800 mb-4">Room Status</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {roomCards.map((card) => (
+            <motion.div
+              key={card.label}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white/70 backdrop-blur-xl border border-slate-100 rounded-2xl p-5 shadow-sm"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-slate-500">{card.label}</p>
+                  <p className="text-2xl font-semibold text-slate-800 mt-1">{card.value}</p>
+                </div>
+                <div className={`p-3 rounded-xl bg-gradient-to-br ${card.color}`}>
+                  <card.icon className="text-white" size={20} />
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
 
       <div className="bg-white/70 backdrop-blur-xl border border-slate-100 rounded-2xl p-5 shadow-sm">

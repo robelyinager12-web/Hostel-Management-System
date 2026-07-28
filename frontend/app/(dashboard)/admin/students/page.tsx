@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Users, Loader2 } from 'lucide-react';
+import { Search, Users, Loader2, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { studentService } from '@/services/studentService';
+import StudentFormModal from '@/features/students/StudentFormModal';
 
 interface StudentRow {
   id: string;
@@ -19,14 +20,17 @@ export default function AdminStudentsPage() {
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
+    setLoading(true);
     studentService
       .getAll()
       .then((res) => setStudents(res.data.data as StudentRow[]))
       .catch((err) => toast.error(err?.response?.data?.message || 'Failed to load students'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [refreshKey]);
 
   const filtered = students.filter((s) =>
     `${s.user.fullName} ${s.studentId} ${s.department}`.toLowerCase().includes(search.toLowerCase()),
@@ -34,9 +38,18 @@ export default function AdminStudentsPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-slate-800">Students</h1>
-        <p className="text-slate-500 text-sm mt-1">All registered students and their room assignments.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold text-slate-800">Students</h1>
+          <p className="text-slate-500 text-sm mt-1">All registered students and their room assignments.</p>
+        </div>
+        <button
+          onClick={() => setIsAddOpen(true)}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-medium bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90"
+        >
+          <Plus size={16} />
+          Add Student
+        </button>
       </div>
 
       <div className="relative max-w-sm">
@@ -105,6 +118,12 @@ export default function AdminStudentsPage() {
           </table>
         </motion.div>
       )}
+
+      <StudentFormModal
+        isOpen={isAddOpen}
+        onClose={() => setIsAddOpen(false)}
+        onCreated={() => setRefreshKey((k) => k + 1)}
+      />
     </div>
   );
 }

@@ -18,6 +18,19 @@ interface StudentProfile {
   room: Room | null;
 }
 
+interface CreateStudentPayload {
+  fullName: string;
+  username: string;
+  email: string;
+  phoneNumber: string;
+  gender: string;
+  studentId: string;
+  department: string;
+  academicYear: string;
+  password: string;
+  roomId?: string;
+}
+
 export const studentService = {
   getMyProfile: () =>
     apiClient.get<{ success: boolean; data: StudentProfile }>('/students/me/profile'),
@@ -25,4 +38,10 @@ export const studentService = {
   getMyRoom: () => apiClient.get<{ success: boolean; data: Room | null }>('/students/me/room'),
 
   getAll: () => apiClient.get<{ success: boolean; data: StudentProfile[] }>('/students'),
+
+  create: (payload: CreateStudentPayload) =>
+    apiClient.post<{
+      success: boolean;
+      data: { student: unknown; credentials: { username: string; password: string } };
+    }>('/students', payload),
 };
